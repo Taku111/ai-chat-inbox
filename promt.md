@@ -1,6 +1,4 @@
 Build the project described in the attached `bexley-inbox-plan-v2.md` file exactly as specified.
- read @promt.md and use it to execute @bexley-inbox-plan-v2.md
-
 ---
 
 ## What You Are Building

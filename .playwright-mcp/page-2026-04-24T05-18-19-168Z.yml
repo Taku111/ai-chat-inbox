@@ -1,0 +1,23 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e9]:
+        - heading "Bexley Inbox" [level=1] [ref=e10]
+        - paragraph [ref=e11]: School WhatsApp Inbox
+    - heading "Sign in" [level=2] [ref=e12]
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]: Email address
+        - textbox "you@bexley.ac.zw" [ref=e16]: test@bexley.ac.zw
+      - generic [ref=e17]:
+        - generic [ref=e18]: Password
+        - generic [ref=e19]:
+          - textbox "••••••••" [ref=e20]: wrongpassword
+          - button [ref=e21]:
+            - img [ref=e22]
+      - generic [ref=e36]: "Firebase: Error (auth/api-key-not-valid.-please-pass-a-valid-api-key.)."
+      - button "Please wait..." [disabled] [ref=e37]
+  - button "Open Next.js Dev Tools" [ref=e31] [cursor=pointer]:
+    - img [ref=e32]
+  - alert [ref=e35]
