@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useConversations } from '@/lib/hooks/useConversations'
 import { useCurrentAgent } from '@/lib/hooks/useCurrentAgent'
+import { useNotifications } from '@/lib/hooks/useNotifications'
+import { useDocumentTitle } from '@/lib/hooks/useDocumentTitle'
 import { ConversationItem } from './ConversationItem'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { MessageSquare, RefreshCw, Loader2 } from 'lucide-react'
+import { MessageSquare, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type TabType = 'open' | 'pending' | 'resolved' | 'all'
@@ -21,6 +23,10 @@ export function ConversationList() {
   const [activeTab, setActiveTab] = useState<TabType>('open')
   const { agent } = useCurrentAgent()
   const { conversations, loading, error, loadMore, hasMore } = useConversations(activeTab)
+
+  // Browser notifications + document title for unread counts
+  useNotifications(conversations, agent?.uid ?? '')
+  useDocumentTitle(conversations, agent?.uid ?? '')
 
   return (
     <div className="flex flex-col h-full">

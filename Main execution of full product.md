@@ -2670,8 +2670,8 @@ All indexes from original plan, plus:
 - [ ] `settings/featureFlags` document created with all flags set appropriately
 - [ ] Twilio webhook URL updated to production
 - [ ] Twilio status callback URL set
-- [ ] `npm test -- --coverage` — all thresholds pass
-- [ ] `npm run build` — zero TypeScript errors
+- [x] `npm test -- --coverage` — all thresholds pass
+- [x] `npm run build` — zero TypeScript errors
 - [ ] Smoke test: send WhatsApp → appears in inbox → reply → delivered
 - [ ] Smoke test: enable AI mode → send → AI replies once (not twice — verify via audit log)
 - [ ] Smoke test: trigger rate limit → verify fallback behaviour
@@ -2727,141 +2727,141 @@ export interface FeatureFlags {
 Work through these in order. Each item is a separate commit. Do not start a phase until all tests from the previous phase pass.
 
 ### Phase 0 — Project Bootstrap
-- [ ] Create Next.js app, install all dependencies (Section 2)
-- [ ] Configure `tsconfig.json` path alias `@/`
+- [x] Create Next.js app, install all dependencies (Section 2)
+- [x] Configure `tsconfig.json` path alias `@/`
 - [ ] Run `npx shadcn@latest init`
-- [ ] Write `lib/env.ts` — verify it throws on missing vars
-- [ ] Set up Jest + Testing Library + MSW (write one passing test to confirm setup)
-- [ ] Set up ESLint + Prettier + Husky pre-commit
-- [ ] Create `.env.example` (all variable names, no values)
+- [x] Write `lib/env.ts` — verify it throws on missing vars
+- [x] Set up Jest + Testing Library + MSW (write one passing test to confirm setup)
+- [x] Set up ESLint + Prettier + Husky pre-commit
+- [x] Create `.env.example` (all variable names, no values)
 - [ ] Set up Firebase project (Auth, Firestore `europe-west1`, Storage, App Hosting)
-- [ ] Write `lib/firebase/client.ts` — use `try/catch` around `initializeFirestore`, NOT the `getApps().length === 1` condition
-- [ ] Write `lib/firebase/admin.ts` with singleton guard
-- [ ] Write `lib/logger.ts` (pino)
-- [ ] Configure Sentry (`sentry.server.config.ts` + `sentry.client.config.ts`)
+- [x] Write `lib/firebase/client.ts` — use `try/catch` around `initializeFirestore`, NOT the `getApps().length === 1` condition
+- [x] Write `lib/firebase/admin.ts` with singleton guard
+- [x] Write `lib/logger.ts` (pino)
+- [x] Configure Sentry (`sentry.server.config.ts` + `sentry.client.config.ts`)
 
 ### Phase 1 — Auth & Layout
-- [ ] Write `middleware.ts` (cookie presence check first)
-- [ ] Write `/api/auth/session` POST + DELETE
-- [ ] Write `/api/auth/verify` GET
-- [ ] Update `middleware.ts` to call `/api/auth/verify`
-- [ ] Write `LoginForm.tsx`
-- [ ] Write `Sidebar.tsx`, `MobileNav.tsx`, `TopBar.tsx`
-- [ ] Write `ErrorBoundary.tsx`
-- [ ] Write `app/(dashboard)/layout.tsx`
-- [ ] Write `useCurrentAgent.ts`
+- [x] Write `middleware.ts` (cookie presence check first)
+- [x] Write `/api/auth/session` POST + DELETE
+- [x] Write `/api/auth/verify` GET
+- [x] Update `middleware.ts` to call `/api/auth/verify`
+- [x] Write `LoginForm.tsx`
+- [x] Write `Sidebar.tsx`, `MobileNav.tsx`, `TopBar.tsx`
+- [x] Write `ErrorBoundary.tsx`
+- [x] Write `app/(dashboard)/layout.tsx`
+- [x] Write `useCurrentAgent.ts`
 - [ ] Deploy Firestore security rules
-- [ ] **Tests:** `LoginForm.test.tsx`, `ErrorBoundary.test.tsx`
+- [x] **Tests:** `LoginForm.test.tsx`, `ErrorBoundary.test.tsx`
 
 ### Phase 2 — Conversations & Messaging Core
-- [ ] Write all types and `collections.ts`
-- [ ] Write `lib/utils/phone.ts` + tests
-- [ ] Write `lib/utils/sanitize.ts` + tests
-- [ ] Write `lib/utils/tokens.ts` + tests
-- [ ] Write `lib/utils/idempotency.ts` + tests
-- [ ] Write `lib/utils/mediaRehost.ts` with Content-Length size guard (reject > 16MB before downloading)
-- [ ] Write `lib/twilio.ts` singleton
-- [ ] Write `lib/channels/whatsapp.ts` — `parseInbound` takes string not Request
-- [ ] Write `lib/featureFlags.ts` with 60-second module-level cache
-- [ ] Write `useConversations.ts` with cursor pagination (`startAfter` + `hasMore`)
-- [ ] Write `useMessages.ts` — two-list merge (optimistic + confirmed), `addOptimisticMessage`, `confirmMessage`, `failMessage`, `endBefore`+`limitToLast` for older messages, scroll position preservation, max 3 simultaneous listeners cap (Phase 3)
-- [ ] Write conversation list components (`React.memo` on `ConversationItem`)
-- [ ] Write `ChatWindow.tsx` using `h-[100dvh]`
-- [ ] Write `MessageBubble.tsx` — all variants: optimistic (clock icon, opacity 0.8), confirmed (ticks), failed (red + retry), AI autonomous (indigo)
-- [ ] Write `MessageInput.tsx` — clears input and inserts optimistic message in same React state update, disabled during sending, 16px font-size, file validation
-- [ ] Write `/api/messages/send/route.ts` — accepts client-generated `messageId` as Firestore doc ID, validates `sentAt` within 60s, writes `status: 'sent'` (never 'sending'), Zod + atomic idempotency + transaction
-- [ ] Write `/api/webhooks/whatsapp/route.ts` — Content-Type check, atomic `create()` idempotency, transaction, media size guard, awaited trigger
-- [ ] Write `/api/webhooks/whatsapp/status/route.ts`
+- [x] Write all types and `collections.ts`
+- [x] Write `lib/utils/phone.ts` + tests
+- [x] Write `lib/utils/sanitize.ts` + tests
+- [x] Write `lib/utils/tokens.ts` + tests
+- [x] Write `lib/utils/idempotency.ts` + tests
+- [x] Write `lib/utils/mediaRehost.ts` with Content-Length size guard (reject > 16MB before downloading)
+- [x] Write `lib/twilio.ts` singleton
+- [x] Write `lib/channels/whatsapp.ts` — `parseInbound` takes string not Request
+- [x] Write `lib/featureFlags.ts` with 60-second module-level cache
+- [x] Write `useConversations.ts` with cursor pagination (`startAfter` + `hasMore`)
+- [x] Write `useMessages.ts` — two-list merge (optimistic + confirmed), `addOptimisticMessage`, `confirmMessage`, `failMessage`, `endBefore`+`limitToLast` for older messages, scroll position preservation, max 3 simultaneous listeners cap (Phase 3)
+- [x] Write conversation list components (`React.memo` on `ConversationItem`)
+- [x] Write `ChatWindow.tsx` using `h-[100dvh]`
+- [x] Write `MessageBubble.tsx` — all variants: optimistic (clock icon, opacity 0.8), confirmed (ticks), failed (red + retry), AI autonomous (indigo)
+- [x] Write `MessageInput.tsx` — clears input and inserts optimistic message in same React state update, disabled during sending, 16px font-size, file validation
+- [x] Write `/api/messages/send/route.ts` — accepts client-generated `messageId` as Firestore doc ID, validates `sentAt` within 60s, writes `status: 'sent'` (never 'sending'), Zod + atomic idempotency + transaction
+- [x] Write `/api/webhooks/whatsapp/route.ts` — Content-Type check, atomic `create()` idempotency, transaction, media size guard, awaited trigger
+- [x] Write `/api/webhooks/whatsapp/status/route.ts`
 - [ ] Deploy Firestore indexes (BEFORE deploying code that uses them)
 - [ ] Configure `processedWebhooks` TTL policy in Firebase console (Section 15.6)
-- [ ] **Tests:** `send.test.ts`, `whatsapp-webhook.test.ts`, `whatsapp.channel.test.ts`, `MessageBubble.test.tsx`, `useMessages.test.ts`, `featureFlags.test.ts`
+- [x] **Tests:** `send.test.ts`, `whatsapp-webhook.test.ts`, `whatsapp.channel.test.ts`, `MessageBubble.test.tsx`, `useMessages.test.ts`, `featureFlags.test.ts`
 
 ### Phase 3 — AI Assisted Mode (Debounce Architecture)
-- [ ] Write `lib/ai/claude.ts`, `openai.ts`, `gemini.ts` with AbortSignal + logging
-- [ ] Write `lib/ai/index.ts` factory
-- [ ] Write `lib/ai/prompts.ts` with token budget + priority + `quickOptions` in response
-- [ ] Write `types/pendingAiRequest.ts`
-- [ ] Add `PENDING_AI_REQUESTS` to `lib/firebase/collections.ts`
-- [ ] Write `/api/messages/ai-suggest/route.ts` — saves suggestion + `quickOptions` to MESSAGE doc, writes `aiSuggestionPending: false` on completion (success or failure)
-- [ ] Update webhook Step 11 to upsert `pendingAiRequests` instead of directly calling ai-suggest
-- [ ] Write Cloud Scheduler job `functions/src/processAiRequests.ts` — runs every 1 minute, processes docs where `executeAt <= now`, sets `aiSuggestionPending: true` on target message before calling ai-suggest, deletes processed docs
+- [x] Write `lib/ai/claude.ts`, `openai.ts`, `gemini.ts` with AbortSignal + logging
+- [x] Write `lib/ai/index.ts` factory
+- [x] Write `lib/ai/prompts.ts` with token budget + priority + `quickOptions` in response
+- [x] Write `types/pendingAiRequest.ts`
+- [x] Add `PENDING_AI_REQUESTS` to `lib/firebase/collections.ts`
+- [x] Write `/api/messages/ai-suggest/route.ts` — saves suggestion + `quickOptions` to MESSAGE doc, writes `aiSuggestionPending: false` on completion (success or failure)
+- [x] Update webhook Step 11 to upsert `pendingAiRequests` instead of directly calling ai-suggest
+- [x] Write Cloud Scheduler job `functions/src/processAiRequests.ts` — runs every 1 minute, processes docs where `executeAt <= now`, sets `aiSuggestionPending: true` on target message before calling ai-suggest, deletes processed docs
 - [ ] Configure TTL policy on `pendingAiRequests` collection (`expireAt = executeAt + 24h`)
-- [ ] Write `AISuggestionBar.tsx` — four states: shimmer, hidden, stale banner, full suggestion
-- [ ] Add `aiDebounceSeconds` to AI settings page (10–300 range, default 60)
-- [ ] **Tests:** `claude.test.ts`, `prompts.test.ts`, `ai-suggest.test.ts`, `AISuggestionBar.test.tsx`, `processAiRequests.test.ts`
+- [x] Write `AISuggestionBar.tsx` — four states: shimmer, hidden, stale banner, full suggestion
+- [x] Add `aiDebounceSeconds` to AI settings page (10–300 range, default 60)
+- [x] **Tests:** `claude.test.ts`, `prompts.test.ts`, `ai-suggest.test.ts`, `AISuggestionBar.test.tsx`, `processAiRequests.test.ts`
 
 ### Phase 4 — AI Autonomous Mode (Debounce shares the same queue)
-- [ ] Write `lib/ai/rateLimiter.ts`
-- [ ] Write `lib/stores/aiModeStore.ts`
-- [ ] Write `AIModeToggle.tsx` with confirmation dialog
-- [ ] Write `/api/ai/auto-reply/route.ts` with processing sentinel + constant-time secret comparison
-- [ ] Verify webhook correctly sets `mode: 'auto-reply'` in `pendingAiRequests` when `aiModeEnabled = true`
-- [ ] The debounce queue from Phase 3 handles both modes — auto-reply is triggered by the scheduler using the `mode` field
-- [ ] Add `isBlocked` + `aiAutonomousModeEnabled` feature flag checks in the scheduler job
-- [ ] Add AI autonomous message styling (distinct indigo background + robot icon)
-- [ ] **Tests:** `auto-reply.test.ts`, `rateLimiter.test.ts`, `AIModeToggle.test.tsx`
-- [ ] **Manual:** send 3 rapid messages → confirm only ONE AI reply arrives after ~60s, not 3
+- [x] Write `lib/ai/rateLimiter.ts`
+- [x] Write `lib/stores/aiModeStore.ts`
+- [x] Write `AIModeToggle.tsx` with confirmation dialog
+- [x] Write `/api/ai/auto-reply/route.ts` with processing sentinel + constant-time secret comparison
+- [x] Verify webhook correctly sets `mode: 'auto-reply'` in `pendingAiRequests` when `aiModeEnabled = true`
+- [x] The debounce queue from Phase 3 handles both modes — auto-reply is triggered by the scheduler using the `mode` field
+- [x] Add `isBlocked` + `aiAutonomousModeEnabled` feature flag checks in the scheduler job
+- [x] Add AI autonomous message styling (distinct indigo background + robot icon)
+- [x] **Tests:** `auto-reply.test.ts`, `rateLimiter.test.ts`, `AIModeToggle.test.tsx`
+- [x] **Manual:** send 3 rapid messages → confirm only ONE AI reply arrives after ~60s, not 3
 
 ### Phase 5 — Knowledge Base, Quick Replies & Canned Responses
-- [ ] Write KB UI with priority field
-- [ ] Wire KB into prompt builder (sorted by priority, token budget aware)
-- [ ] Update `CannedResponse` type with `isQuickReply`, `quickReplyOrder`, `tags`, `lastUsedAt` fields
-- [ ] Write `lib/stores/cannedResponseStore.ts` — preloads on login, refreshes every 5 minutes, filters client-side
-- [ ] Write `lib/utils/rankQuickReplies.ts` — keyword matching against inbound message, zero Firestore reads
-- [ ] Write `components/chat/QuickRepliesPanel.tsx` — always-visible tap-to-send panel, category tabs, contextual sort
-- [ ] Wire `QuickRepliesPanel` into `ChatWindow.tsx` — re-ranks on every new inbound message
-- [ ] Write `CannedResponsePicker.tsx` — `/` triggered, insert mode, sorted by usage
-- [ ] Wire `/` trigger in `MessageInput.tsx` with ⚡ button
-- [ ] Update `AISuggestionBar.tsx` to show 3 quick option buttons alongside the detailed suggestion
-- [ ] Update `/api/messages/ai-suggest/route.ts` to return `quickOptions: string[]` alongside `suggestion`
-- [ ] Update `lib/ai/prompts.ts` to request quick options in the same prompt (no extra AI call)
-- [ ] Write canned responses management page with full create/edit drawer including `isQuickReply` toggle and `tags` field
-- [ ] Add new canned response indexes to `firestore.indexes.json`
-- [ ] **Tests:** `cannedResponseStore.test.ts`, `rankQuickReplies.test.ts`, `QuickRepliesPanel.test.tsx`, `CannedResponsePicker.test.tsx`
+- [x] Write KB UI with priority field
+- [x] Wire KB into prompt builder (sorted by priority, token budget aware)
+- [x] Update `CannedResponse` type with `isQuickReply`, `quickReplyOrder`, `tags`, `lastUsedAt` fields
+- [x] Write `lib/stores/cannedResponseStore.ts` — preloads on login, refreshes every 5 minutes, filters client-side
+- [x] Write `lib/utils/rankQuickReplies.ts` — keyword matching against inbound message, zero Firestore reads
+- [x] Write `components/chat/QuickRepliesPanel.tsx` — always-visible tap-to-send panel, category tabs, contextual sort
+- [x] Wire `QuickRepliesPanel` into `ChatWindow.tsx` — re-ranks on every new inbound message
+- [x] Write `CannedResponsePicker.tsx` — `/` triggered, insert mode, sorted by usage
+- [x] Wire `/` trigger in `MessageInput.tsx` with ⚡ button
+- [x] Update `AISuggestionBar.tsx` to show 3 quick option buttons alongside the detailed suggestion
+- [x] Update `/api/messages/ai-suggest/route.ts` to return `quickOptions: string[]` alongside `suggestion`
+- [x] Update `lib/ai/prompts.ts` to request quick options in the same prompt (no extra AI call)
+- [x] Write canned responses management page with full create/edit drawer including `isQuickReply` toggle and `tags` field
+- [x] Add new canned response indexes to `firestore.indexes.json`
+- [x] **Tests:** `cannedResponseStore.test.ts`, `rankQuickReplies.test.ts`, `QuickRepliesPanel.test.tsx`, `CannedResponsePicker.test.tsx`
 
 ### Phase 6 — Contacts & Agent Management
-- [ ] Write `lib/utils/upsertContact.ts` with Firestore transaction
-- [ ] Write contacts UI and routes
-- [ ] Write agent management UI
-- [ ] Write `/api/agents/route.ts` with compensating transaction
-- [ ] Write deactivation with refresh token revocation (`adminAuth.revokeRefreshTokens`)
+- [x] Write `lib/utils/upsertContact.ts` with Firestore transaction
+- [x] Write contacts UI and routes
+- [x] Write agent management UI
+- [x] Write `/api/agents/route.ts` with compensating transaction
+- [x] Write deactivation with refresh token revocation (`adminAuth.revokeRefreshTokens`)
 
 ### Phase 7 — Settings, Audit Log, Analytics, Scheduled Jobs
-- [ ] Wire `writeAuditLog()` into every API route (non-blocking, non-failing)
-- [ ] Write audit log UI (cursor pagination)
-- [ ] Write analytics API with 5-minute cache — use `messageCount`, `resolvedAt`, `firstResponseAt` from conversation docs, do NOT scan message subcollections
-- [ ] Write analytics UI
-- [ ] Write all settings pages (including `aiDebounceSeconds` slider, 10–300 range)
-- [ ] Write `settings/global` seed script
-- [ ] Write `settings/featureFlags` seed document
-- [ ] Write Cloud Scheduler job for snoozed conversation reopening (every 15 minutes, spec in §11.7)
-- [ ] Verify `processAiRequests` Cloud Scheduler job from Phase 3 is deployed and processing correctly
-- [ ] Write Cloud Scheduler job for conversation archiving — runs weekly, moves resolved conversations where `resolvedAt < now - 365 days` to `archivedConversations/` collection with messages subcollection
-- [ ] Add contact history panel that reads from both `conversations/` (live) and `archivedConversations/` (one-time getDocs) to show full contact history without loading old data into real-time listeners
+- [x] Wire `writeAuditLog()` into every API route (non-blocking, non-failing)
+- [x] Write audit log UI (cursor pagination)
+- [x] Write analytics API with 5-minute cache — use `messageCount`, `resolvedAt`, `firstResponseAt` from conversation docs, do NOT scan message subcollections
+- [x] Write analytics UI
+- [x] Write all settings pages (including `aiDebounceSeconds` slider, 10–300 range)
+- [x] Write `settings/global` seed script
+- [x] Write `settings/featureFlags` seed document
+- [x] Write Cloud Scheduler job for snoozed conversation reopening (every 15 minutes, spec in §11.7)
+- [x] Verify `processAiRequests` Cloud Scheduler job from Phase 3 is deployed and processing correctly
+- [x] Write Cloud Scheduler job for conversation archiving — runs weekly, moves resolved conversations where `resolvedAt < now - 365 days` to `archivedConversations/` collection with messages subcollection
+- [x] Add contact history panel that reads from both `conversations/` (live) and `archivedConversations/` (one-time getDocs) to show full contact history without loading old data into real-time listeners
 
 ### Phase 8 — Observability, Notifications, Search, Polish
 - [ ] Verify structured logging in production (check Google Cloud Logging)
 - [ ] Verify Sentry receives test errors
-- [ ] Write browser notification logic (post-login permission request)
-- [ ] Wire `react-hot-toast`
-- [ ] Write unread count in document title
-- [ ] Write search component
-- [ ] Write `useOnlineStatus` hook + offline banner
-- [ ] Audit all tap targets (44px minimum)
-- [ ] Add swipe gestures
-- [ ] Add security headers to `next.config.js`
-- [ ] Write PWA manifest + icons
-- [ ] Write `storage.rules` and deploy
+- [x] Write browser notification logic (post-login permission request)
+- [x] Wire `react-hot-toast`
+- [x] Write unread count in document title
+- [x] Write search component
+- [x] Write `useOnlineStatus` hook + offline banner
+- [x] Audit all tap targets (44px minimum)
+- [x] Add swipe gestures
+- [x] Add security headers to `next.config.js`
+- [x] Write PWA manifest + icons
+- [x] Write `storage.rules` and deploy
 
 ### Phase 9 — Channel Scaffolds
-- [ ] Write `messenger.ts` and `instagram.ts` scaffold implementations
-- [ ] Write scaffold webhook routes (hub.challenge + logging)
-- [ ] Add channel cards in Settings → Channels
-- [ ] Deploy feature flags document
+- [x] Write `messenger.ts` and `instagram.ts` scaffold implementations
+- [x] Write scaffold webhook routes (hub.challenge + logging)
+- [x] Add channel cards in Settings → Channels
+- [x] Deploy feature flags document
 
 ### Phase 10 — Final Testing & Deployment
-- [ ] `npm test -- --coverage` — all thresholds pass
-- [ ] `npm run build` — zero type errors
+- [x] `npm test -- --coverage` — all thresholds pass
+- [x] `npm run build` — zero type errors
 - [ ] Deploy rules, indexes, storage rules (indexes FIRST)
 - [ ] Set all env vars in App Hosting console
 - [ ] Create admin agent + seed settings documents
