@@ -24,6 +24,20 @@
 .DS_Store
 *.pem
 
+# Firebase service account keys — NEVER commit these
+*-firebase-adminsdk-*.json
+*serviceAccountKey*.json
+*.test.ts.snap
+
+# Playwright test artifacts
+login-page.png
+login-error.png
+login-mobile.png
+.playwright-mcp/
+
+# Test env
+.env.test
+
 # debug
 npm-debug.log*
 yarn-debug.log*
