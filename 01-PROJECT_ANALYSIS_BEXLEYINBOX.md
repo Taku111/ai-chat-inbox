@@ -209,3 +209,42 @@ Agent types → taps Send
 ---
 
 <!-- Updated: 2026-04-24 - Initial creation -->
+
+---
+
+## Session 1 Completion — 2026-04-24
+
+### What Was Built
+
+All 10 phases implemented in a single session:
+
+**Phase 0 (Bootstrap):** All dependencies installed, tsconfig `@/*` alias, jest config, pino logger, Sentry config, .env.example
+
+**Phase 1 (Auth & Layout):** `middleware.ts`, session/verify API routes, `LoginForm.tsx`, Sidebar/MobileNav/TopBar, `ErrorBoundary`, dashboard layout with auth guard
+
+**Phase 2 (Conversations & Messaging Core):** All type files (7), `collections.ts`, utility functions (phone, sanitize, tokens, idempotency, mediaRehost, date), `useConversations` with cursor pagination, `useMessages` with optimistic UI + endBefore/limitToLast, `ChatWindow`, `MessageBubble` (optimistic/confirmed/failed/AI variants), `MessageInput`, `/api/messages/send` (client-generated UUID, atomic idempotency, status: 'sent' never 'sending'), WhatsApp webhook (Content-Type check, HMAC, atomic create(), transaction, debounce upsert)
+
+**Phase 3 (AI Debounce):** Claude/OpenAI/Gemini clients with AbortSignal, `prompts.ts` (KB priority, token budget, quickOptions), `pendingAiRequests` collection, Cloud Scheduler function (`processAiRequests.ts`), `/api/messages/ai-suggest`, `AISuggestionBar` (4 states: shimmer, hidden, stale, full)
+
+**Phase 4 (Autonomous Mode):** Rate limiter (Firestore count()), processing sentinel, `/api/ai/auto-reply` (constant-time secret comparison, full guard chain), `AIModeToggle`
+
+**Phase 5 (Knowledge Base, Quick Replies, Canned Responses):** KB editor, `CannedResponse` with `isQuickReply`/`tags`/`quickReplyOrder`, `cannedResponseStore` (Zustand, preloaded on login), `rankQuickReplies` (client-side, zero reads), `QuickRepliesPanel`, `CannedResponsePicker`
+
+**Phases 6-9:** Contacts, Agents (with compensating transaction), Audit Log, Analytics (5-min cache), Settings, Storage rules, Firestore rules & indexes, channel scaffolds, PWA manifest
+
+### Key Decisions Made
+
+1. **Lazy Firebase Client SDK initialization** — `typeof window === 'undefined'` guard prevents SSR errors during Next.js build-time module evaluation
+2. **Proxy pattern for Admin SDK** — `new Proxy({} as Firestore, { get: ... })` defers initialization until first method call, preventing build failures from missing env vars
+3. **`functions/` excluded from root tsconfig** — prevents Firebase Functions types from polluting the Next.js TS environment
+
+### Critical Bug Caught
+
+`expoforms-firebase-adminsdk-f6sl8-c4611f972d.json` was accidentally committed via `git add -A`. The key for the `expoforms` Firebase project was exposed in git history. The user must rotate this key immediately.
+
+### RULE Added: Never use `git add -A` blindly
+**Date:** 2026-04-24
+**Triggered by:** Accidentally committed a Firebase service account key
+**Prevention:** Always run `git status` first, then stage specific files by name or directory. Never use `git add -A` or `git add .` without reviewing the status output first.
+
+<!-- Updated: 2026-04-24 - Session 1 complete -->
