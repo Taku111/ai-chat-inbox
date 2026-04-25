@@ -15,7 +15,7 @@
         "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "928745662890",
         "NEXT_PUBLIC_FIREBASE_APP_ID": "1:928745662890:web:80e0066644a0e1dc67a3d3",
         "FIREBASE_ADMIN_PROJECT_ID": "expoforms",
-        "FIREBASE_ADMIN_CLIENT_EMAIL": "firebase-adminsdk-f6sl8@expoforms.iam.gserviceaccount.com",
+        "FIREBASE_ADMIN_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@expoforms.iam.gserviceaccount.com",
         "TWILIO_WHATSAPP_NUMBER": "+263784978232",
         "AI_VENDOR": "gemini",
         "AI_MODEL": "gemini-2.5-flash",
