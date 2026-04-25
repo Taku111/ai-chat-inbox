@@ -24,9 +24,11 @@
 .DS_Store
 *.pem
 
-# Firebase service account keys — NEVER commit these
+# Firebase
+.firebase/
 *-firebase-adminsdk-*.json
 *serviceAccountKey*.json
+firebaseConfig.js
 *.test.ts.snap
 
 # Playwright test artifacts

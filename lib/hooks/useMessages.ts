@@ -11,7 +11,7 @@ import {
   endBefore,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
-import { db } from '@/lib/firebase/client'
+import { getDb } from '@/lib/firebase/client'
 import { COLLECTIONS } from '@/lib/firebase/collections'
 import type { Message, OptimisticMessage } from '@/types/message'
 import * as Sentry from '@sentry/nextjs'
@@ -30,29 +30,28 @@ export function useMessages(conversationId: string) {
 
   useEffect(() => {
     if (!conversationId) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
 
     const q = query(
-      collection(db, COLLECTIONS.MESSAGES(conversationId)),
+      collection(getDb(), COLLECTIONS.MESSAGES(conversationId)),
       orderBy('sentAt', 'asc'),
       limitToLast(PAGE_SIZE)
     )
 
     const unsub = onSnapshot(
       q,
-      snapshot => {
-        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Message))
+      (snapshot) => {
+        const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Message)
         setConfirmedMessages(docs)
         firstVisibleRef.current = snapshot.docs[0] ?? null
         setHasOlder(snapshot.docs.length === PAGE_SIZE)
 
         // Remove optimistic messages that have been confirmed by Firestore
-        setOptimisticMessages(prev =>
-          prev.filter(opt => !docs.some(c => c.id === opt.id))
-        )
+        setOptimisticMessages((prev) => prev.filter((opt) => !docs.some((c) => c.id === opt.id)))
         setLoading(false)
       },
-      err => {
+      (err) => {
         setError(err)
         Sentry.captureException(err)
         setLoading(false)
@@ -70,15 +69,15 @@ export function useMessages(conversationId: string) {
 
     try {
       const q = query(
-        collection(db, COLLECTIONS.MESSAGES(conversationId)),
+        collection(getDb(), COLLECTIONS.MESSAGES(conversationId)),
         orderBy('sentAt', 'asc'),
         endBefore(firstVisibleRef.current),
         limitToLast(PAGE_SIZE)
       )
       const snapshot = await getDocs(q)
-      const older = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Message))
+      const older = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Message)
 
-      setConfirmedMessages(prev => [...older, ...prev])
+      setConfirmedMessages((prev) => [...older, ...prev])
       firstVisibleRef.current = snapshot.docs[0] ?? null
       setHasOlder(snapshot.docs.length === PAGE_SIZE)
 
@@ -93,24 +92,21 @@ export function useMessages(conversationId: string) {
   }, [conversationId, hasOlder])
 
   const addOptimisticMessage = useCallback((msg: OptimisticMessage) => {
-    setOptimisticMessages(prev => [...prev, msg])
+    setOptimisticMessages((prev) => [...prev, msg])
   }, [])
 
   const confirmMessage = useCallback((id: string) => {
-    setOptimisticMessages(prev => prev.filter(m => m.id !== id))
+    setOptimisticMessages((prev) => prev.filter((m) => m.id !== id))
   }, [])
 
   const failMessage = useCallback((id: string) => {
-    setOptimisticMessages(prev =>
-      prev.map(m => m.id === id ? { ...m, status: 'failed' as const } : m)
+    setOptimisticMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, status: 'failed' as const } : m))
     )
   }, [])
 
   // Rendered list = confirmed + optimistic (optimistic at end, ordered by sentAt)
-  const messages: (Message | OptimisticMessage)[] = [
-    ...confirmedMessages,
-    ...optimisticMessages,
-  ]
+  const messages: (Message | OptimisticMessage)[] = [...confirmedMessages, ...optimisticMessages]
 
   return {
     messages,

@@ -55,7 +55,12 @@ export async function POST(req: Request) {
   const [convSnap, settingsSnap, kbSnap] = await Promise.all([
     adminDb.collection(COLLECTIONS.CONVERSATIONS).doc(conversationId).get(),
     adminDb.collection(COLLECTIONS.SETTINGS).doc('global').get(),
-    adminDb.collection(COLLECTIONS.KNOWLEDGE_BASE).where('isActive', '==', true).orderBy('priority').limit(50).get(),
+    adminDb
+      .collection(COLLECTIONS.KNOWLEDGE_BASE)
+      .where('isActive', '==', true)
+      .orderBy('priority')
+      .limit(50)
+      .get(),
   ])
 
   if (!convSnap.exists) {
@@ -74,7 +79,10 @@ export async function POST(req: Request) {
   const contactSnap = await adminDb.collection(COLLECTIONS.CONTACTS).doc(conv.contactId).get()
   const contact = contactSnap.data() ?? {}
   if (contact.isBlocked) {
-    logger.info({ conversationId, contactId: conv.contactId }, 'Auto-reply skipped — contact blocked')
+    logger.info(
+      { conversationId, contactId: conv.contactId },
+      'Auto-reply skipped — contact blocked'
+    )
     return Response.json({ ok: false, sent: false, blocked: true })
   }
 
@@ -109,7 +117,12 @@ export async function POST(req: Request) {
   if (settings.businessHoursEnabled) {
     const tz = settings.businessHoursTimezone ?? 'Africa/Harare'
     const now = new Date()
-    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false })
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
     const [, hours, minutes] = formatter.format(now).match(/(\d+):(\d+)/) ?? []
     const currentMinutes = parseInt(hours) * 60 + parseInt(minutes)
     const [startH, startM] = (settings.businessHoursStart ?? '07:30').split(':').map(Number)
@@ -141,8 +154,8 @@ export async function POST(req: Request) {
     .orderBy('sentAt', 'asc')
     .limitToLast(10)
     .get()
-  const recentMessages = messagesSnap.docs.map(d => d.data()) as any[]
-  const kbEntries = kbSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[]
+  const recentMessages = messagesSnap.docs.map((d) => d.data()) as any[]
+  const kbEntries = kbSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[]
 
   let aiText: string
   const controller = new AbortController()
@@ -171,10 +184,14 @@ export async function POST(req: Request) {
     clearTimeout(timeout)
   }
 
-  // Parse JSON response
+  // Parse JSON response — strip markdown code fences Gemini sometimes wraps around JSON
+  const jsonText = aiText
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '')
+    .trim()
   let reply = aiText
   try {
-    const p = JSON.parse(aiText)
+    const p = JSON.parse(jsonText)
     reply = p.reply ?? aiText
   } catch {}
 
@@ -219,13 +236,16 @@ export async function POST(req: Request) {
   })
 
   // Update conversation metadata
-  await adminDb.collection(COLLECTIONS.CONVERSATIONS).doc(conversationId).update({
-    lastMessage: reply.slice(0, 100),
-    lastMessageAt: Timestamp.fromDate(now),
-    lastMessageDirection: 'outbound',
-    messageCount: FieldValue.increment(1),
-    updatedAt: FieldValue.serverTimestamp(),
-  })
+  await adminDb
+    .collection(COLLECTIONS.CONVERSATIONS)
+    .doc(conversationId)
+    .update({
+      lastMessage: reply.slice(0, 100),
+      lastMessageAt: Timestamp.fromDate(now),
+      lastMessageDirection: 'outbound',
+      messageCount: FieldValue.increment(1),
+      updatedAt: FieldValue.serverTimestamp(),
+    })
 
   // 11. Delete processing sentinel
   await sentinelRef.delete().catch(() => {})
@@ -237,7 +257,12 @@ export async function POST(req: Request) {
     agentName: 'AI (Autonomous)',
     conversationId,
     messageId: msgRef.id,
-    metadata: { twilioSid, vendor: settings.aiVendor ?? 'claude' },
+    metadata: {
+      twilioSid,
+      vendor: settings.aiVendor ?? 'gemini',
+      model: settings.aiModel ?? 'gemini-2.5-flash',
+      kbEntriesUsed: kbEntries.map((e) => e.id),
+    },
   }).catch(() => {})
 
   logger.info({ latencyMs: Date.now() - startMs, conversationId, twilioSid }, 'Auto-reply sent')

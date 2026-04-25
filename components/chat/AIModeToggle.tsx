@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
-import { db } from '@/lib/firebase/client'
+import { getDb } from '@/lib/firebase/client'
 import { COLLECTIONS } from '@/lib/firebase/collections'
 import { Bot } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -26,7 +26,7 @@ export function AIModeToggle({ conversation, agent }: AIModeToggleProps) {
   async function toggle(enabled: boolean) {
     setLoading(true)
     try {
-      await updateDoc(doc(db, COLLECTIONS.CONVERSATIONS, conversation.id), {
+      await updateDoc(doc(getDb(), COLLECTIONS.CONVERSATIONS, conversation.id), {
         aiModeEnabled: enabled,
         aiModeEnabledAt: enabled ? serverTimestamp() : null,
         aiModeEnabledBy: enabled ? agent.uid : null,
@@ -68,9 +68,8 @@ export function AIModeToggle({ conversation, agent }: AIModeToggleProps) {
           <div className="bg-white rounded-2xl w-full max-w-sm p-6">
             <h3 className="text-base font-bold text-gray-900 mb-2">Enable AI Mode?</h3>
             <p className="text-sm text-gray-600 mb-4">
-              AI will automatically reply to this parent&apos;s messages without your review.
-              Each reply is sent ~60 seconds after the parent goes quiet.
-              You can disable it at any time.
+              AI will automatically reply to this parent&apos;s messages without your review. Each
+              reply is sent ~60 seconds after the parent goes quiet. You can disable it at any time.
             </p>
             <div className="flex gap-2">
               <button

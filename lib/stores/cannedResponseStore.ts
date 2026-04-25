@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { collection, getDocs, doc, updateDoc, increment } from 'firebase/firestore'
-import { db } from '@/lib/firebase/client'
+import { getDb } from '@/lib/firebase/client'
 import { COLLECTIONS } from '@/lib/firebase/collections'
 import type { CannedResponse } from '@/types/ai'
 
@@ -28,8 +28,8 @@ export const useCannedResponseStore = create<CannedResponseStore>((set, get) => 
     if (get().loading) return
     set({ loading: true })
     try {
-      const snap = await getDocs(collection(db, COLLECTIONS.CANNED_RESPONSES))
-      const responses = snap.docs.map(d => ({ id: d.id, ...d.data() } as CannedResponse))
+      const snap = await getDocs(collection(getDb(), COLLECTIONS.CANNED_RESPONSES))
+      const responses = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as CannedResponse)
       set({ responses, lastFetchedAt: Date.now() })
     } finally {
       set({ loading: false })
@@ -43,32 +43,30 @@ export const useCannedResponseStore = create<CannedResponseStore>((set, get) => 
 
   getByShortcode(prefix: string) {
     const p = prefix.toLowerCase().replace(/^\//, '')
-    return get().responses.filter(r =>
-      r.shortcode.toLowerCase().startsWith(p)
-    )
+    return get().responses.filter((r) => r.shortcode.toLowerCase().startsWith(p))
   },
 
   getQuickReplies(category?: string) {
-    return get().responses.filter(r =>
-      r.isQuickReply && (!category || r.category === category)
-    ).sort((a, b) => a.quickReplyOrder - b.quickReplyOrder || b.usageCount - a.usageCount)
+    return get()
+      .responses.filter((r) => r.isQuickReply && (!category || r.category === category))
+      .sort((a, b) => a.quickReplyOrder - b.quickReplyOrder || b.usageCount - a.usageCount)
   },
 
   getByKeywords(keywords: string[]) {
-    const lk = keywords.map(k => k.toLowerCase())
-    return get().responses.filter(r =>
-      r.tags.some(tag => lk.some(k => k.includes(tag.toLowerCase())))
+    const lk = keywords.map((k) => k.toLowerCase())
+    return get().responses.filter((r) =>
+      r.tags.some((tag) => lk.some((k) => k.includes(tag.toLowerCase())))
     )
   },
 
   recordUsage(id: string) {
-    set(state => ({
-      responses: state.responses.map(r =>
+    set((state) => ({
+      responses: state.responses.map((r) =>
         r.id === id ? { ...r, usageCount: r.usageCount + 1 } : r
       ),
     }))
     // Write to Firestore in background
-    updateDoc(doc(db, COLLECTIONS.CANNED_RESPONSES, id), {
+    updateDoc(doc(getDb(), COLLECTIONS.CANNED_RESPONSES, id), {
       usageCount: increment(1),
       lastUsedAt: new Date(),
     }).catch(() => {})

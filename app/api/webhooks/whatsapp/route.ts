@@ -59,7 +59,8 @@ export async function POST(req: Request) {
       expireAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30-day TTL
     })
   } catch (err: any) {
-    if (err.code === 6) { // ALREADY_EXISTS
+    if (err.code === 6) {
+      // ALREADY_EXISTS
       logger.info({ idempotencyKey }, 'Duplicate webhook rejected')
       await writeAuditLog({
         action: 'webhook.duplicate_rejected',
@@ -80,8 +81,8 @@ export async function POST(req: Request) {
   // from the same new number arrive simultaneously
   let contact: any, conversation: any
   try {
-    const result = await adminDb.runTransaction(async tx => {
-      // All reads before all writes (Firestore transaction requirement)
+    const result = await adminDb.runTransaction(async (tx) => {
+      // ── READ PHASE (all reads must precede all writes) ─────────────────────
       const contactsQuery = adminDb
         .collection(COLLECTIONS.CONTACTS)
         .where('phoneNumber', '==', inbound.from)
@@ -89,16 +90,25 @@ export async function POST(req: Request) {
 
       const [contactSnap] = (await tx.get(contactsQuery)).docs
 
-      let contactId: string
-      let contactData: any
+      // Pre-allocate a ref for a new contact so we can use its ID in the
+      // conversation query below — without doing a write yet.
+      const newContactRef = contactSnap ? null : adminDb.collection(COLLECTIONS.CONTACTS).doc()
+      const contactId = contactSnap ? contactSnap.id : newContactRef!.id
 
+      const convsQuery = adminDb
+        .collection(COLLECTIONS.CONVERSATIONS)
+        .where('contactId', '==', contactId)
+        .where('channel', '==', 'whatsapp')
+        .where('status', 'in', ['open', 'pending'])
+        .limit(1)
+
+      const [convSnap] = (await tx.get(convsQuery)).docs
+
+      // ── WRITE PHASE ────────────────────────────────────────────────────────
+      let contactData: any
       if (contactSnap) {
-        contactId = contactSnap.id
         contactData = contactSnap.data()
       } else {
-        // Create new contact
-        const newContactRef = adminDb.collection(COLLECTIONS.CONTACTS).doc()
-        contactId = newContactRef.id
         contactData = {
           phoneNumber: inbound.from,
           displayName: inbound.fromName || inbound.from,
@@ -112,19 +122,9 @@ export async function POST(req: Request) {
           lastContactedAt: FieldValue.serverTimestamp(),
           schemaVersion: 1,
         }
-        tx.set(newContactRef, contactData)
+        tx.set(newContactRef!, contactData)
         contactData.id = contactId
       }
-
-      // Find existing open conversation or create new
-      const convsQuery = adminDb
-        .collection(COLLECTIONS.CONVERSATIONS)
-        .where('contactId', '==', contactId)
-        .where('channel', '==', 'whatsapp')
-        .where('status', 'in', ['open', 'pending'])
-        .limit(1)
-
-      const [convSnap] = (await tx.get(convsQuery)).docs
 
       let conversationId: string
       let conversationData: any
@@ -134,7 +134,6 @@ export async function POST(req: Request) {
         conversationData = convSnap.data()
         conversationData.id = conversationId
       } else {
-        // Create new conversation
         const newConvRef = adminDb.collection(COLLECTIONS.CONVERSATIONS).doc()
         conversationId = newConvRef.id
         conversationData = {
@@ -168,13 +167,15 @@ export async function POST(req: Request) {
         conversationData.id = conversationId
       }
 
-      // Update lastContactedAt on contact
       tx.update(adminDb.collection(COLLECTIONS.CONTACTS).doc(contactId), {
         lastContactedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       })
 
-      return { contact: { ...contactData, id: contactId }, conversation: { ...conversationData, id: conversationId } }
+      return {
+        contact: { ...contactData, id: contactId },
+        conversation: { ...conversationData, id: conversationId },
+      }
     })
 
     contact = result.contact
@@ -194,7 +195,7 @@ export async function POST(req: Request) {
       inbound.externalId,
       process.env.TWILIO_ACCOUNT_SID,
       process.env.TWILIO_AUTH_TOKEN
-    ).catch(err => {
+    ).catch((err) => {
       logger.error({ err, mediaUrl: inbound.mediaUrl }, 'Media rehost failed')
       return null
     })
@@ -250,24 +251,33 @@ export async function POST(req: Request) {
   // ⚠️ The webhook does NOT call AI directly — all AI work is decoupled to Cloud Scheduler.
   // This makes the webhook fast and well within Twilio's 15-second window.
   const executeAt = new Date(Date.now() + debounceSeconds * 1000)
-  const aiMode = (conversation.aiModeEnabled && !contact.isBlocked) ? 'auto-reply' : 'suggest'
+  const aiMode = conversation.aiModeEnabled && !contact.isBlocked ? 'auto-reply' : 'suggest'
 
-  await adminDb.collection(COLLECTIONS.PENDING_AI_REQUESTS).doc(conversation.id).set({
-    conversationId: conversation.id,
-    executeAt: Timestamp.fromDate(executeAt),
-    latestMessageId: messageRef.id,
-    mode: aiMode,
-    updatedAt: FieldValue.serverTimestamp(),
-    createdAt: FieldValue.serverTimestamp(),
-  }, { merge: true })
+  await adminDb
+    .collection(COLLECTIONS.PENDING_AI_REQUESTS)
+    .doc(conversation.id)
+    .set(
+      {
+        conversationId: conversation.id,
+        executeAt: Timestamp.fromDate(executeAt),
+        latestMessageId: messageRef.id,
+        mode: aiMode,
+        updatedAt: FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    )
   // merge: true = create if missing, update executeAt and latestMessageId on burst
 
-  logger.info({
-    latencyMs: Date.now() - startMs,
-    conversationId: conversation.id,
-    from: inbound.from,
-    mode: aiMode,
-  }, 'Webhook processed')
+  logger.info(
+    {
+      latencyMs: Date.now() - startMs,
+      conversationId: conversation.id,
+      from: inbound.from,
+      mode: aiMode,
+    },
+    'Webhook processed'
+  )
 
   return twimlResponse
 }

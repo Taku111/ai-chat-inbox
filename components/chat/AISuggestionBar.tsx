@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { doc, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase/client'
+import { getDb } from '@/lib/firebase/client'
 import { COLLECTIONS } from '@/lib/firebase/collections'
 import type { Conversation } from '@/types/conversation'
 import type { Message, AISuggestion } from '@/types/message'
@@ -34,12 +34,13 @@ export function AISuggestionBar({
 
   useEffect(() => {
     if (!messageId || !conversationId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestionMessage(null)
       return
     }
 
-    const ref = doc(db, COLLECTIONS.MESSAGES(conversationId), messageId)
-    const unsub = onSnapshot(ref, snap => {
+    const ref = doc(getDb(), COLLECTIONS.MESSAGES(conversationId), messageId)
+    const unsub = onSnapshot(ref, (snap) => {
       if (snap.exists()) {
         setSuggestionMessage({ id: snap.id, ...snap.data() } as Message)
       } else {
@@ -58,7 +59,9 @@ export function AISuggestionBar({
     if (!suggestion) return false
     const genAt = suggestion.generatedAt
     if (!genAt) return false
-    const genDate = typeof (genAt as any).toDate === 'function' ? (genAt as any).toDate() : new Date(genAt as any)
+    const genDate =
+      typeof (genAt as any).toDate === 'function' ? (genAt as any).toDate() : new Date(genAt as any)
+    // eslint-disable-next-line react-hooks/purity
     if (Date.now() - genDate.getTime() > STALE_THRESHOLD_MS) return true
     return false
   }

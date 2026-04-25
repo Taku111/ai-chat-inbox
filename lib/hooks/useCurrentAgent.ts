@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { doc, onSnapshot } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase/client'
+import { getAuth, getDb } from '@/lib/firebase/client'
 import { COLLECTIONS } from '@/lib/firebase/collections'
 import type { Agent } from '@/types/agent'
 
@@ -12,32 +12,42 @@ export function useCurrentAgent() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, user => {
+    let unsubAgent: (() => void) | null = null
+
+    const unsubAuth = onAuthStateChanged(getAuth(), (user) => {
+      if (unsubAgent) {
+        unsubAgent()
+        unsubAgent = null
+      }
+
       if (!user) {
         setAgent(null)
         setLoading(false)
         return
       }
 
-      const unsubAgent = onSnapshot(
-        doc(db, COLLECTIONS.AGENTS, user.uid),
-        snapshot => {
-          if (snapshot.exists()) {
-            setAgent({ uid: snapshot.id, ...snapshot.data() } as Agent)
+      const agentRef = doc(getDb(), COLLECTIONS.AGENTS, user.uid)
+      unsubAgent = onSnapshot(
+        agentRef,
+        (snap) => {
+          if (snap.exists() && snap.data()?.isActive) {
+            setAgent({ uid: snap.id, ...snap.data() } as Agent)
           } else {
             setAgent(null)
           }
           setLoading(false)
         },
         () => {
+          setAgent(null)
           setLoading(false)
         }
       )
-
-      return unsubAgent
     })
 
-    return unsubAuth
+    return () => {
+      unsubAuth()
+      if (unsubAgent) unsubAgent()
+    }
   }, [])
 
   return { agent, loading }

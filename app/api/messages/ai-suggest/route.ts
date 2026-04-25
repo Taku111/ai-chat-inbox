@@ -19,8 +19,8 @@ export async function POST(req: Request) {
     const cookieHeader = req.headers.get('cookie') ?? ''
     const sessionCookie = cookieHeader
       .split(';')
-      .map(c => c.trim())
-      .find(c => c.startsWith('session='))
+      .map((c) => c.trim())
+      .find((c) => c.startsWith('session='))
       ?.slice('session='.length)
 
     if (!sessionCookie) {
@@ -36,7 +36,10 @@ export async function POST(req: Request) {
   // Check feature flag
   const flags = await getFeatureFlags()
   if (!flags.aiSuggestionsEnabled) {
-    return Response.json({ ok: false, error: 'AI suggestions disabled', code: 'DISABLED' }, { status: 200 })
+    return Response.json(
+      { ok: false, error: 'AI suggestions disabled', code: 'DISABLED' },
+      { status: 200 }
+    )
   }
 
   // Validate
@@ -52,7 +55,12 @@ export async function POST(req: Request) {
   const [convSnap, settingsSnap, kbSnap] = await Promise.all([
     adminDb.collection(COLLECTIONS.CONVERSATIONS).doc(conversationId).get(),
     adminDb.collection(COLLECTIONS.SETTINGS).doc('global').get(),
-    adminDb.collection(COLLECTIONS.KNOWLEDGE_BASE).where('isActive', '==', true).orderBy('priority').limit(50).get(),
+    adminDb
+      .collection(COLLECTIONS.KNOWLEDGE_BASE)
+      .where('isActive', '==', true)
+      .orderBy('priority')
+      .limit(50)
+      .get(),
   ])
 
   if (!convSnap.exists) {
@@ -61,12 +69,12 @@ export async function POST(req: Request) {
 
   const conv = convSnap.data()!
   const settings = settingsSnap.data() ?? {}
-  const kbEntries = kbSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[]
+  const kbEntries = kbSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[]
 
   const contactSnap = await adminDb.collection(COLLECTIONS.CONTACTS).doc(conv.contactId).get()
   const contact = contactSnap.data() ?? { displayName: conv.contactName, isBlocked: false }
 
-  // Check blocked
+  // Check blockedoutOfHoursMessage
   if (contact.isBlocked) {
     return Response.json({ ok: false, error: 'Contact is blocked' }, { status: 200 })
   }
@@ -78,7 +86,7 @@ export async function POST(req: Request) {
     .limitToLast(10)
     .get()
 
-  const recentMessages = messagesSnap.docs.map(d => d.data()) as any[]
+  const recentMessages = messagesSnap.docs.map((d) => d.data()) as any[]
 
   // Mark message as pending (shimmer starts in agent UI)
   const msgRef = adminDb.collection(COLLECTIONS.MESSAGES(conversationId)).doc(messageId)
@@ -118,10 +126,15 @@ export async function POST(req: Request) {
   }
 
   // Parse JSON response (AI returns { reply, quickOptions })
+  // Strip markdown code fences Gemini sometimes wraps around JSON
+  const jsonText = aiText
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '')
+    .trim()
   let reply = aiText
   let quickOptions: string[] = []
   try {
-    const parsed = JSON.parse(aiText)
+    const parsed = JSON.parse(jsonText)
     reply = parsed.reply ?? aiText
     quickOptions = Array.isArray(parsed.quickOptions) ? parsed.quickOptions.slice(0, 3) : []
   } catch {
@@ -151,7 +164,16 @@ export async function POST(req: Request) {
     updatedAt: FieldValue.serverTimestamp(),
   })
 
-  logger.info({ latencyMs: Date.now() - startMs, conversationId, vendor: suggestion.vendor }, 'AI suggestion generated')
+  logger.info(
+    { latencyMs: Date.now() - startMs, conversationId, vendor: suggestion.vendor },
+    'AI suggestion generated'
+  )
 
-  return Response.json({ ok: true, suggestion: reply, quickOptions, vendor: suggestion.vendor, model: suggestion.model })
+  return Response.json({
+    ok: true,
+    suggestion: reply,
+    quickOptions,
+    vendor: suggestion.vendor,
+    model: suggestion.model,
+  })
 }

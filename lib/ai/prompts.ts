@@ -36,29 +36,41 @@ Customer: ${ctx.contact.displayName}`.trim()
 }
 
 export function buildAutonomousPrompt(ctx: PromptContext): string {
-  return buildSuggestionPrompt(ctx) +
-    '\n\n⚠️ This reply is sent automatically without human review. Be precise and conservative. If uncertain, say a team member will follow up rather than guessing.'
+  const kbText = buildKnowledgeBaseSection(ctx.knowledgeBaseEntries, KB_TOKEN_BUDGET)
+  return `You are a helpful customer service assistant for ${ctx.businessName}.${ctx.businessDescription ? `\nAbout: ${ctx.businessDescription}` : ''}
+${ctx.customSystemPrompt}
+
+## Knowledge Base
+${kbText}
+
+## Instructions
+- Respond in the same language as the customer
+- Be concise and friendly (under 3 sentences)
+- If unsure, say a team member will follow up — never fabricate facts
+- No disclaimers, sign-offs, or JSON — reply with plain text only
+- ⚠️ This reply is sent automatically without human review. Be precise and conservative.
+Customer: ${ctx.contact.displayName}`.trim()
 }
 
 export function buildMessagesForAI(
   messages: PromptContext['recentMessages']
 ): { role: 'user' | 'assistant'; content: string }[] {
   const truncated = truncateMessagesToTokenBudget(
-    messages.map(m => ({ body: m.body, sentAt: m.sentAt })),
+    messages.map((m) => ({ body: m.body, sentAt: m.sentAt })),
     MESSAGE_TOKEN_BUDGET
   )
 
   const ids = new Set(truncated.map((_, i) => i))
   const filtered = messages.filter((_, i) => ids.has(i))
 
-  return filtered.map(m => ({
+  return filtered.map((m) => ({
     role: (m.direction === 'inbound' ? 'user' : 'assistant') as 'user' | 'assistant',
     content: m.body,
   }))
 }
 
 function buildKnowledgeBaseSection(entries: KnowledgeBaseEntry[], budget: number): string {
-  const active = entries.filter(e => e.isActive)
+  const active = entries.filter((e) => e.isActive)
   const sorted = [...active].sort((a, b) => a.priority - b.priority)
   let used = 0
   const included: string[] = []

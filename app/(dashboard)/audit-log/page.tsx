@@ -1,8 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { collection, getDocs, orderBy, query, limit, startAfter, type QueryDocumentSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase/client'
+import {
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  limit,
+  startAfter,
+  type QueryDocumentSnapshot,
+} from 'firebase/firestore'
+import { getDb } from '@/lib/firebase/client'
 import { COLLECTIONS } from '@/lib/firebase/collections'
 import { useCurrentAgent } from '@/lib/hooks/useCurrentAgent'
 import type { AuditLog } from '@/types/auditLog'
@@ -23,11 +31,11 @@ export default function AuditLogPage() {
     const constraints: any[] = [orderBy('createdAt', 'desc'), limit(PAGE_SIZE)]
     if (after) constraints.push(startAfter(after))
 
-    const snap = await getDocs(query(collection(db, COLLECTIONS.AUDIT_LOGS), ...constraints))
-    const newLogs = snap.docs.map(d => ({ id: d.id, ...d.data() } as AuditLog))
+    const snap = await getDocs(query(collection(getDb(), COLLECTIONS.AUDIT_LOGS), ...constraints))
+    const newLogs = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as AuditLog)
 
     if (after) {
-      setLogs(prev => [...prev, ...newLogs])
+      setLogs((prev) => [...prev, ...newLogs])
     } else {
       setLogs(newLogs)
     }
@@ -36,7 +44,10 @@ export default function AuditLogPage() {
     setLoading(false)
   }
 
-  useEffect(() => { loadLogs() }, [])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadLogs()
+  }, [])
 
   if (agent?.role !== 'admin') {
     return <div className="p-8 text-sm text-gray-500">Admin access required.</div>
@@ -64,18 +75,31 @@ export default function AuditLogPage() {
             <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : logs.length === 0 ? (
-          <EmptyState icon={ClipboardList} title="No audit logs" description="Actions will be logged here." />
+          <EmptyState
+            icon={ClipboardList}
+            title="No audit logs"
+            description="Actions will be logged here."
+          />
         ) : (
           <>
-            {logs.map(log => (
-              <div key={log.id} className="flex items-start gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50">
+            {logs.map((log) => (
+              <div
+                key={log.id}
+                className="flex items-start gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50"
+              >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-medium ${actionColor[log.action] ?? 'text-gray-700'}`}>{log.action}</span>
+                    <span
+                      className={`text-xs font-medium ${actionColor[log.action] ?? 'text-gray-700'}`}
+                    >
+                      {log.action}
+                    </span>
                     <span className="text-xs text-gray-400">{log.agentName}</span>
                   </div>
                   {log.conversationId && (
-                    <p className="text-xs text-gray-500 truncate mt-0.5">Conv: {log.conversationId.slice(0, 16)}...</p>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">
+                      Conv: {log.conversationId.slice(0, 16)}...
+                    </p>
                   )}
                 </div>
                 <span className="text-xs text-gray-400 flex-shrink-0">
@@ -84,7 +108,10 @@ export default function AuditLogPage() {
               </div>
             ))}
             {hasMore && (
-              <button onClick={() => loadLogs(lastVisible ?? undefined)} className="w-full py-3 text-sm text-green-600 hover:text-green-700 font-medium border-t border-gray-100">
+              <button
+                onClick={() => loadLogs(lastVisible ?? undefined)}
+                className="w-full py-3 text-sm text-green-600 hover:text-green-700 font-medium border-t border-gray-100"
+              >
                 Load more
               </button>
             )}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '@/lib/firebase/client'
+import { getAuth } from '@/lib/firebase/client'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, MessageSquare } from 'lucide-react'
 
@@ -22,7 +22,7 @@ export default function LoginForm() {
     setError(null)
 
     try {
-      const credential = await signInWithEmailAndPassword(auth, email, password)
+      const credential = await signInWithEmailAndPassword(getAuth(), email, password)
       const idToken = await credential.user.getIdToken()
 
       const res = await fetch('/api/auth/session', {
@@ -66,13 +66,11 @@ export default function LoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Email address
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
             <input
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
               className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:opacity-60"
@@ -83,14 +81,12 @@ export default function LoginForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
                 className="w-full px-3.5 py-2.5 pr-10 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:opacity-60"
@@ -100,7 +96,7 @@ export default function LoginForm() {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(s => !s)}
+                onClick={() => setShowPassword((s) => !s)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 tabIndex={-1}
               >
@@ -131,7 +127,16 @@ export default function LoginForm() {
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) {
     const msg = err.message
-    if (msg.includes('auth/invalid-credential') || msg.includes('auth/wrong-password') || msg.includes('auth/user-not-found') || msg.includes('auth/invalid-email')) {
+
+    console.log('Login error:', msg)
+    console.log('Login err44444or:', err)
+
+    if (
+      msg.includes('auth/invalid-credential') ||
+      msg.includes('auth/wrong-password') ||
+      msg.includes('auth/user-not-found') ||
+      msg.includes('auth/invalid-email')
+    ) {
       return 'Incorrect email or password. Please try again.'
     }
     if (msg.includes('Not an authorised agent')) {
@@ -140,7 +145,12 @@ function getErrorMessage(err: unknown): string {
     if (msg.includes('auth/too-many-requests')) {
       return 'Too many failed attempts. Please try again in a few minutes.'
     }
-    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('api-key-not-valid') || msg.includes('auth/configuration-not-found')) {
+    if (
+      msg.includes('Failed to fetch') ||
+      msg.includes('NetworkError') ||
+      msg.includes('api-key-not-valid') ||
+      msg.includes('auth/configuration-not-found')
+    ) {
       return 'Network error. Please check your connection and try again.'
     }
     return msg

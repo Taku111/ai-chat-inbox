@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { doc, onSnapshot, collection, query, where, orderBy } from 'firebase/firestore'
-import { db } from '@/lib/firebase/client'
+import { getDb } from '@/lib/firebase/client'
 import { COLLECTIONS } from '@/lib/firebase/collections'
 import { useMessages } from '@/lib/hooks/useMessages'
 import { useCurrentAgent } from '@/lib/hooks/useCurrentAgent'
@@ -43,14 +43,11 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
   // Subscribe to conversation doc
   useEffect(() => {
     if (!conversationId) return
-    return onSnapshot(
-      doc(db, COLLECTIONS.CONVERSATIONS, conversationId),
-      snap => {
-        if (snap.exists()) {
-          setConversation({ id: snap.id, ...snap.data() } as Conversation)
-        }
+    return onSnapshot(doc(getDb(), COLLECTIONS.CONVERSATIONS, conversationId), (snap) => {
+      if (snap.exists()) {
+        setConversation({ id: snap.id, ...snap.data() } as Conversation)
       }
-    )
+    })
   }, [conversationId])
 
   // Auto-scroll to bottom on new messages
@@ -144,7 +141,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
   async function handleRequestAI() {
     if (!messages.length) return
-    const lastInbound = [...messages].reverse().find(m => m.direction === 'inbound')
+    const lastInbound = [...messages].reverse().find((m) => m.direction === 'inbound')
     if (!lastInbound) return
 
     try {
@@ -161,7 +158,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
     }
   }
 
-  const lastInboundBody = [...messages].reverse().find(m => m.direction === 'inbound')?.body ?? ''
+  const lastInboundBody = [...messages].reverse().find((m) => m.direction === 'inbound')?.body ?? ''
 
   return (
     <div className="flex flex-col h-[100dvh] md:h-full">
@@ -170,17 +167,12 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
         conversation={conversation ?? undefined}
         showBack
         actions={
-          conversation && agent ? (
-            <AIModeToggle conversation={conversation} agent={agent} />
-          ) : null
+          conversation && agent ? <AIModeToggle conversation={conversation} agent={agent} /> : null
         }
       />
 
       {/* Message list */}
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto py-2"
-      >
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto py-2">
         {/* Load older messages button */}
         {hasOlder && (
           <div className="flex justify-center pb-2">
@@ -201,7 +193,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
         )}
 
         <ErrorBoundary>
-          {messages.map(message => (
+          {messages.map((message) => (
             <MessageBubble
               key={message.id}
               message={message}
@@ -224,7 +216,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
         <QuickRepliesPanel
           lastInboundMessage={lastInboundBody}
           onSend={handleSend}
-          onInsert={text => setEditSuggestionText(text)}
+          onInsert={(text) => setEditSuggestionText(text)}
         />
       )}
 
@@ -247,7 +239,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
         onSend={handleSend}
         onAfterSend={() => setEditSuggestionText('')}
         onRequestAISuggestion={handleRequestAI}
-        onToggleQuickReplies={() => setShowQuickReplies(s => !s)}
+        onToggleQuickReplies={() => setShowQuickReplies((s) => !s)}
       />
     </div>
   )

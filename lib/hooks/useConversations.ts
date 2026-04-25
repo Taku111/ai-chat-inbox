@@ -13,7 +13,7 @@ import {
   type DocumentSnapshot,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
-import { db } from '@/lib/firebase/client'
+import { getDb } from '@/lib/firebase/client'
 import { COLLECTIONS } from '@/lib/firebase/collections'
 import type { Conversation } from '@/types/conversation'
 import * as Sentry from '@sentry/nextjs'
@@ -33,7 +33,7 @@ export function useConversations(tab: TabType = 'open') {
   const isLive = tab === 'open' || tab === 'pending'
 
   const buildQuery = useCallback(() => {
-    const col = collection(db, COLLECTIONS.CONVERSATIONS)
+    const col = collection(getDb(), COLLECTIONS.CONVERSATIONS)
     if (tab === 'open' || tab === 'pending') {
       return query(
         col,
@@ -54,6 +54,7 @@ export function useConversations(tab: TabType = 'open') {
   }, [tab])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
     lastVisibleRef.current = null
@@ -67,14 +68,14 @@ export function useConversations(tab: TabType = 'open') {
       // Real-time listener for Open/Pending
       unsubRef.current = onSnapshot(
         buildQuery(),
-        snapshot => {
-          const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Conversation))
+        (snapshot) => {
+          const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Conversation)
           setConversations(docs)
           setHasMore(snapshot.docs.length === PAGE_SIZE)
           lastVisibleRef.current = snapshot.docs[snapshot.docs.length - 1] ?? null
           setLoading(false)
         },
-        err => {
+        (err) => {
           setError(err)
           Sentry.captureException(err)
           setLoading(false)
@@ -83,14 +84,14 @@ export function useConversations(tab: TabType = 'open') {
     } else {
       // One-time fetch for Resolved/All tabs
       getDocs(buildQuery())
-        .then(snapshot => {
-          const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Conversation))
+        .then((snapshot) => {
+          const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Conversation)
           setConversations(docs)
           setHasMore(snapshot.docs.length === PAGE_SIZE)
           lastVisibleRef.current = snapshot.docs[snapshot.docs.length - 1] ?? null
           setLoading(false)
         })
-        .catch(err => {
+        .catch((err) => {
           setError(err)
           Sentry.captureException(err)
           setLoading(false)
@@ -108,7 +109,7 @@ export function useConversations(tab: TabType = 'open') {
   const loadMore = useCallback(async () => {
     if (!lastVisibleRef.current || !hasMore) return
 
-    const col = collection(db, COLLECTIONS.CONVERSATIONS)
+    const col = collection(getDb(), COLLECTIONS.CONVERSATIONS)
     let q
     if (tab === 'open' || tab === 'pending') {
       q = query(
@@ -127,13 +128,18 @@ export function useConversations(tab: TabType = 'open') {
         limit(PAGE_SIZE)
       )
     } else {
-      q = query(col, orderBy('lastMessageAt', 'desc'), startAfter(lastVisibleRef.current), limit(PAGE_SIZE))
+      q = query(
+        col,
+        orderBy('lastMessageAt', 'desc'),
+        startAfter(lastVisibleRef.current),
+        limit(PAGE_SIZE)
+      )
     }
 
     try {
       const snapshot = await getDocs(q)
-      const more = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Conversation))
-      setConversations(prev => [...prev, ...more])
+      const more = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Conversation)
+      setConversations((prev) => [...prev, ...more])
       setHasMore(snapshot.docs.length === PAGE_SIZE)
       lastVisibleRef.current = snapshot.docs[snapshot.docs.length - 1] ?? null
     } catch (err) {

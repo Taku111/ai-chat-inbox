@@ -1,7 +1,14 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['@anthropic-ai/sdk', 'openai', '@google/generative-ai', 'twilio', 'pino'],
+  serverExternalPackages: [
+    '@anthropic-ai/sdk',
+    'openai',
+    '@google/generative-ai',
+    '@google/genai',
+    'twilio',
+    'pino',
+  ],
   async headers() {
     return [
       {
@@ -27,6 +34,6 @@ const nextConfig: NextConfig = {
       },
     ]
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

@@ -3,13 +3,13 @@ import type { NextRequest } from 'next/server'
 
 const PUBLIC_PATHS = ['/login', '/api/webhooks', '/api/auth']
 // ⚠️ /api/webhooks must be public — Twilio cannot send session cookies
-// ⚠️ /api/auth must be public — calling /api/auth/verify from middleware
+// ⚠️ /api/auth must be public — calling /api/auth/verify from here
 //    would cause an infinite redirect loop if /api/auth itself were protected.
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return NextResponse.next()
   }
 
@@ -18,8 +18,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // ⚠️ Verify the cookie, not just its presence. Edge runtime cannot use Node.js crypto,
-  // so we call /api/auth/verify (a serverless API route that can use firebase-admin).
   try {
     const res = await fetch(`${request.nextUrl.origin}/api/auth/verify`, {
       headers: { Cookie: `session=${sessionCookie}` },

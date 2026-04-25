@@ -3,12 +3,19 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  MessageSquare, Users, BookOpen, Zap, BarChart2,
-  UserCheck, Settings, ClipboardList, LogOut,
+  MessageSquare,
+  Users,
+  BookOpen,
+  Zap,
+  BarChart2,
+  UserCheck,
+  Settings,
+  ClipboardList,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { signOut } from 'firebase/auth'
-import { auth } from '@/lib/firebase/client'
+import { getAuth } from '@/lib/firebase/client'
 import { useRouter } from 'next/navigation'
 import type { Agent } from '@/types/agent'
 
@@ -34,7 +41,7 @@ export function Sidebar({ agent }: SidebarProps) {
   const router = useRouter()
 
   async function handleLogout() {
-    await signOut(auth)
+    await signOut(getAuth())
     await fetch('/api/auth/session', { method: 'DELETE' })
     router.push('/login')
   }
@@ -51,21 +58,26 @@ export function Sidebar({ agent }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map(item => (
+        {NAV_ITEMS.map((item) => (
           <NavItem key={item.href} {...item} active={pathname.startsWith(item.href)} />
         ))}
 
         {agent?.role === 'admin' && (
           <>
             <div className="my-2 border-t border-gray-100" />
-            {ADMIN_NAV_ITEMS.map(item => (
+            {ADMIN_NAV_ITEMS.map((item) => (
               <NavItem key={item.href} {...item} active={pathname.startsWith(item.href)} />
             ))}
           </>
         )}
 
         <div className="my-2 border-t border-gray-100" />
-        <NavItem href="/settings" icon={Settings} label="Settings" active={pathname.startsWith('/settings')} />
+        <NavItem
+          href="/settings"
+          icon={Settings}
+          label="Settings"
+          active={pathname.startsWith('/settings')}
+        />
       </nav>
 
       {/* User footer */}
@@ -106,9 +118,7 @@ function NavItem({
       href={href}
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-        active
-          ? 'bg-green-50 text-green-700'
-          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+        active ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
       )}
     >
       <Icon className="w-4 h-4 flex-shrink-0" />

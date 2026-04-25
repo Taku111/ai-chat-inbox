@@ -1,0 +1,33 @@
+{
+  "firestore": {
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "source": ".",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "frameworksBackend": {
+      "region": "us-central1",
+      "environmentVariables": {
+        "NEXT_PUBLIC_APP_URL": "https://expoforms.web.app",
+        "NEXT_PUBLIC_FIREBASE_PROJECT_ID": "expoforms",
+        "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "expoforms.firebaseapp.com",
+        "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET": "expoforms.appspot.com",
+        "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "928745662890",
+        "NEXT_PUBLIC_FIREBASE_APP_ID": "1:928745662890:web:80e0066644a0e1dc67a3d3",
+        "FIREBASE_ADMIN_PROJECT_ID": "expoforms",
+        "FIREBASE_ADMIN_CLIENT_EMAIL": "firebase-adminsdk-f6sl8@expoforms.iam.gserviceaccount.com",
+        "TWILIO_ACCOUNT_SID": "AC7b35aa6174a18fd4aad83b497d35fa20",
+        "TWILIO_WHATSAPP_NUMBER": "+263784978232",
+        "AI_VENDOR": "gemini",
+        "AI_MODEL": "gemini-2.5-flash",
+        "LOG_LEVEL": "info"
+      },
+      "secretEnvironmentVariables": [
+        { "variable": "TWILIO_AUTH_TOKEN", "secret": "TWILIO_AUTH_TOKEN" },
+        { "variable": "WEBHOOK_SECRET", "secret": "WEBHOOK_SECRET" },
+        { "variable": "GOOGLE_GENERATIVE_AI_API_KEY", "secret": "GOOGLE_GENERATIVE_AI_API_KEY" },
+        { "variable": "FIREBASE_ADMIN_PRIVATE_KEY", "secret": "ADMIN_PRIVATE_KEY" }
+      ]
+    }
+  }
+}
